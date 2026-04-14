@@ -1,0 +1,11 @@
+{
+  "document_id": "DOC-1004",
+  "file_name": "shipment_notice_valves.txt",
+  "document_type": "shipment_notice",
+  "source_system": "logistics_portal",
+  "owner_team": "supply_chain",
+  "character_count": 130,
+  "word_count": 19,
+  "contains_numeric_signal": false,
+  "summary": "Advance shipment notice for three pressure-control valves and one spare actuator. Expected arrival is Friday at the Rio"
+}

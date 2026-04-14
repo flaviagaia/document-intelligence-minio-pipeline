@@ -1,0 +1,11 @@
+{
+  "document_id": "DOC-1003",
+  "file_name": "maintenance_report_unit17.txt",
+  "document_type": "maintenance_report",
+  "source_system": "cmms_export",
+  "owner_team": "maintenance",
+  "character_count": 155,
+  "word_count": 20,
+  "contains_numeric_signal": true,
+  "summary": "Unit 17 reported abnormal vibration during night shift. Technician replaced the coupling, recorded oil contamination, and scheduled a"
+}

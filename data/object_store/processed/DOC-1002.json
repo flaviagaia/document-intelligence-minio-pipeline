@@ -1,0 +1,11 @@
+{
+  "document_id": "DOC-1002",
+  "file_name": "invoice_field_tools.txt",
+  "document_type": "invoice",
+  "source_system": "finance_mailbox",
+  "owner_team": "accounts_payable",
+  "character_count": 129,
+  "word_count": 20,
+  "contains_numeric_signal": true,
+  "summary": "Invoice for field tools rental covering pressure gauges, calibration kit, and freight. Payment term is net 30 days"
+}

@@ -1,0 +1,10 @@
+.DS_Store
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+venv/
+data/raw/*.csv
+data/processed/*.json
+data/processed/*.csv
+artifacts/*.json

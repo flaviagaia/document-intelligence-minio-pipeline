@@ -1,0 +1,5 @@
+{
+  "storage_runtime": "MinIO S3-compatible object storage",
+  "design_note": "The project is structured around MinIO buckets named raw, processed, and curated. A deterministic local filesystem fallback is kept for reproducible execution.",
+  "integration_hint": "Set MINIO_ENDPOINT, MINIO_ACCESS_KEY, MINIO_SECRET_KEY, and optionally MINIO_SECURE to run the object-storage path against a live MinIO server."
+}

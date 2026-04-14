@@ -1,0 +1,11 @@
+{
+  "document_id": "DOC-1006",
+  "file_name": "inspection_checklist_generator.txt",
+  "document_type": "inspection_checklist",
+  "source_system": "operations_workspace",
+  "owner_team": "operations",
+  "character_count": 127,
+  "word_count": 14,
+  "contains_numeric_signal": false,
+  "summary": "Checklist confirms hose integrity, seal condition, pressure tolerance, and emergency-stop validation before equipment dispatch."
+}
