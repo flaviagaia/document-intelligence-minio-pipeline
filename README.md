@@ -1,41 +1,75 @@
 # document-intelligence-minio-pipeline
 
-Este projeto mostra como estruturar um pipeline de **document intelligence** sobre **MinIO**, usando a compatibilidade com a API `S3` para organizar artefatos em camadas `raw`, `processed` e `curated`.
+Este projeto mostra como estruturar um pipeline de **document intelligence** com **MinIO** como camada de armazenamento orientada a objetos. A ideia central e simples: documentos entram em uma camada `raw`, passam por uma etapa de enrichments leves, e saem em uma camada `curated` pronta para consumo por busca, analytics, OCR posterior, agentes ou RAG.
 
-O objetivo aqui nao e fazer OCR pesado ou NLP complexo. O objetivo e mostrar a **arquitetura de storage e processamento documental**, com uma implementacao local reproduzivel e pronta para evoluir para um servidor MinIO real.
+O valor do projeto nao esta em um OCR sofisticado. O valor esta em mostrar uma arquitetura documental limpa, reproduzivel e muito proxima do que aparece em plataformas reais de dados, MLOps e aplicações de IA baseadas em documentos.
 
-## O que o projeto faz
+## Explicacao rapida
 
-1. Gera um corpus documental local com contratos, invoices, relatorios de manutencao, politicas e checklists.
-2. Escreve os textos originais no bucket `raw`.
-3. Extrai metadados simples como `word_count`, `character_count` e um `summary`.
-4. Salva os metadados estruturados no bucket `processed`.
-5. Cria uma camada `curated` com classificacao documental orientada a consumo.
-6. Gera um relatorio consolidado para observabilidade do pipeline.
+Se alguem perguntar "o que esse projeto faz?", a resposta curta e:
 
-## Por que usar MinIO aqui
+- recebe documentos de varios tipos;
+- grava os arquivos originais na camada `raw`;
+- extrai metadados operacionais;
+- salva esses metadados na camada `processed`;
+- cria uma visao `curated` mais pronta para consumo;
+- gera um artefato final de observabilidade do run.
 
-`MinIO` e um object store compativel com `S3`. Isso permite treinar padroes que aparecem em ambientes reais de dados e MLOps sem depender diretamente da AWS.
+## O que e MinIO e por que usar aqui
 
-Neste projeto, ele representa bem cenarios como:
+`MinIO` e um **object store compativel com a API S3**. Em termos práticos, ele permite trabalhar com os mesmos conceitos usados em pipelines baseados em buckets:
 
-- data lake documental;
-- armazenamento de artefatos de OCR/NLP;
-- staging de documentos para pipelines posteriores;
-- organizacao por buckets e prefixos;
-- separacao entre dado bruto, dado processado e dado pronto para consumo.
+- `bucket`
+- `object`
+- `prefix`
+- storage layers
+- artefatos imutaveis
+- separacao entre dado bruto e dado derivado
+
+Isso e muito util porque boa parte dos pipelines modernos de documentos, dados e ML depende exatamente dessa logica. O MinIO permite praticar esse desenho localmente, sem depender obrigatoriamente da AWS.
+
+## Problema que o projeto resolve
+
+Em muitos cenarios documentais, o problema nao e so armazenar um arquivo. O problema real e:
+
+- preservar o documento original;
+- enriquecer o dado sem sobrescrever a origem;
+- manter lineage entre o arquivo de entrada e o artefato derivado;
+- disponibilizar uma camada pronta para uso por sistemas consumidores.
+
+Esse projeto endereca isso com uma estrutura simples e explicita de camadas.
 
 ## Arquitetura
 
 ```mermaid
 flowchart LR
-    A["Sample documents"] --> B["raw bucket"]
+    A["Incoming documents"] --> B["raw bucket"]
     B --> C["Metadata extraction"]
     C --> D["processed bucket"]
-    D --> E["Curated classification layer"]
+    D --> E["Curated document view"]
     E --> F["curated bucket"]
     F --> G["Pipeline report"]
 ```
+
+## Fluxo do pipeline
+
+1. O corpus de exemplo e gerado localmente com documentos como contrato, invoice, maintenance report, policy e checklist.
+2. Cada documento e gravado como objeto bruto na camada `raw`.
+3. O pipeline extrai sinais simples:
+   - `character_count`
+   - `word_count`
+   - `contains_numeric_signal`
+   - `summary`
+4. Esses sinais sao persistidos na camada `processed`.
+5. Depois disso, o pipeline cria uma classificacao documental mais pronta para consumo:
+   - `legal_operational_document`
+   - `finance_document`
+   - `maintenance_signal_document`
+   - `supply_chain_document`
+   - `governance_document`
+   - `field_readiness_document`
+6. O resultado final e gravado na camada `curated`.
+7. Um relatorio consolidado fecha o run com contagens e indicadores operacionais.
 
 ## Estrutura do repositorio
 
@@ -43,23 +77,64 @@ flowchart LR
   Entry point local do pipeline.
 
 - [app.py](/Users/flaviagaia/Documents/CV_FLAVIA_CODEX/document-intelligence-minio-pipeline/app.py)  
-  API simples com endpoint de execucao.
+  API simples para acionar o run.
 
 - [src/sample_data.py](/Users/flaviagaia/Documents/CV_FLAVIA_CODEX/document-intelligence-minio-pipeline/src/sample_data.py)  
-  Gera o corpus documental local e a referencia do runtime MinIO.
+  Gera o corpus documental local e a referencia do runtime.
 
 - [src/storage.py](/Users/flaviagaia/Documents/CV_FLAVIA_CODEX/document-intelligence-minio-pipeline/src/storage.py)  
-  Implementa a resolucao entre runtime real `MinIO` e fallback local por filesystem.
+  Resolve o runtime entre `MinIO` real e fallback local por filesystem.
 
 - [src/pipeline.py](/Users/flaviagaia/Documents/CV_FLAVIA_CODEX/document-intelligence-minio-pipeline/src/pipeline.py)  
-  Faz ingestao, escrita em buckets, enrichments simples e relatorio final.
+  Implementa a escrita nas camadas `raw`, `processed` e `curated`, alem do relatorio final.
 
 - [tests/test_project.py](/Users/flaviagaia/Documents/CV_FLAVIA_CODEX/document-intelligence-minio-pipeline/tests/test_project.py)  
   Garante o contrato minimo do pipeline.
 
+## Contrato das camadas
+
+### `raw`
+Representa a entrada imutavel do pipeline.
+
+O que fica aqui:
+- conteudo original do documento;
+- nome do arquivo original;
+- sem enriquecimentos destrutivos.
+
+Objetivo:
+- preservar a origem;
+- permitir reprocessamento;
+- manter auditabilidade.
+
+### `processed`
+Representa a camada de trabalho enriquecida.
+
+O que fica aqui:
+- metadados derivados;
+- sinais operacionais simples;
+- informacao suficiente para indexacao ou analise posterior.
+
+Objetivo:
+- separar dado derivado do dado fonte;
+- evitar recalculo desnecessario;
+- criar uma camada reutilizavel para outros pipelines.
+
+### `curated`
+Representa a camada pronta para consumo por aplicacoes.
+
+O que fica aqui:
+- classificacao documental;
+- resumo operacional;
+- estrutura mais legivel para analytics, busca e sistemas consumidores.
+
+Objetivo:
+- aproximar o dado do uso final;
+- reduzir acoplamento com a logica de preprocessamento;
+- facilitar integracao com agentes, dashboards e mecanismos de busca.
+
 ## Runtime modes
 
-O projeto funciona em dois modos:
+O projeto funciona em dois modos.
 
 ### 1. `minio_s3_api`
 Ativado quando estas variaveis estao disponiveis:
@@ -69,7 +144,7 @@ Ativado quando estas variaveis estao disponiveis:
 - `MINIO_SECRET_KEY`
 - opcional `MINIO_SECURE`
 
-Nesse modo, o pipeline grava objetos em um servidor MinIO real.
+Nesse modo, o pipeline grava objetos em um servidor MinIO real, mantendo uma experiencia muito proxima de workloads baseados em `S3`.
 
 ### 2. `local_filesystem_fallback`
 Se o runtime MinIO nao estiver configurado, o projeto usa uma simulacao local em:
@@ -78,7 +153,12 @@ Se o runtime MinIO nao estiver configurado, o projeto usa uma simulacao local em
 - `data/object_store/processed`
 - `data/object_store/curated`
 
-Esse fallback permite manter o repositorio executavel, testavel e demonstravel sem dependencia externa.
+Esse fallback existe para garantir:
+
+- reproducibilidade;
+- execucao local sem dependencia externa;
+- testes automatizados estaveis;
+- demonstracao de arquitetura mesmo sem servidor ativo.
 
 ## Como executar
 
@@ -86,7 +166,7 @@ Esse fallback permite manter o repositorio executavel, testavel e demonstravel s
 python3 main.py
 ```
 
-Para rodar a API:
+Para subir a API:
 
 ```bash
 uvicorn app:app --reload
@@ -111,51 +191,73 @@ uvicorn app:app --reload
 
 - relatorio consolidado:
   [document_intelligence_minio_report.json](/Users/flaviagaia/Documents/CV_FLAVIA_CODEX/document-intelligence-minio-pipeline/data/processed/document_intelligence_minio_report.json)
-- camada curated:
+- camada `curated`:
   [curated_documents.json](/Users/flaviagaia/Documents/CV_FLAVIA_CODEX/document-intelligence-minio-pipeline/artifacts/curated_documents.json)
 
 ## Leitura tecnica
 
-O ponto mais importante deste projeto nao e a extracao em si, mas o desenho do pipeline documental:
+Tecnicamente, o projeto demonstra alguns principios importantes:
 
-- bucket `raw` representa a entrada imutavel;
-- bucket `processed` representa enrichments e metadados derivados;
-- bucket `curated` representa dados prontos para consumo por busca, analytics, OCR posterior ou agentes;
-- o relatorio final funciona como artefato de observabilidade do run.
+- **immutability by layer**  
+  o documento fonte nao e sobrescrito por metadados derivados;
 
-Esse desenho e muito util para:
+- **lineage simples e explicito**  
+  o mesmo `document_id` atravessa as camadas;
 
-- OCR pipelines;
-- document AI;
-- compliance document stores;
-- RAG com repositório documental;
-- armazenamento de artefatos de MLOps.
+- **storage-first design**  
+  a persistencia nao e um detalhe do pipeline; ela e parte da arquitetura;
+
+- **consumer-oriented curation**  
+  a camada `curated` ja pensa no uso final por sistemas consumidores.
+
+## Como defender esse projeto em entrevista
+
+Uma boa forma de explicar esse repositório e:
+
+"Eu quis mostrar como usar MinIO como object storage compativel com S3 para organizar um pipeline documental por camadas. O documento original vai para `raw`, os metadados derivados vao para `processed`, e a visao mais pronta para consumo vai para `curated`. Isso ajuda com reprocessamento, governanca, lineage e integracao com busca, RAG ou analytics."
+
+## Evolucoes naturais
+
+Esse projeto pode evoluir facilmente para:
+
+- OCR com `Textract`, `Tesseract` ou parser de PDF;
+- indexacao em Elasticsearch ou vector store;
+- pipeline de embeddings para RAG;
+- versionamento de artefatos de ML;
+- eventos de bucket para acionar processamento automatico;
+- integracao com Airflow, Metaflow ou workflows serverless.
 
 ## English
 
-This project shows how to structure a **document intelligence pipeline** on top of **MinIO**, using `S3-compatible object storage` to organize artifacts across `raw`, `processed`, and `curated` layers.
+This project shows how to structure a **document intelligence pipeline** using **MinIO** as the object-storage layer. The main idea is straightforward: documents land in a `raw` layer, go through lightweight enrichments, and leave the pipeline in a `curated` layer ready for search, analytics, OCR follow-up, agents, or RAG.
 
-The goal is not heavy OCR or advanced NLP. The goal is to demonstrate a **document-storage architecture** with a reproducible local runtime that can be upgraded to a real MinIO server.
+The value of this repository is not advanced OCR. Its value is the architecture: a clean, reproducible, storage-first design that mirrors real-world document platforms.
 
-### What the project does
+### What MinIO means here
 
-1. Generates a local corpus with contracts, invoices, maintenance reports, policies, and checklists.
-2. Writes original text into the `raw` bucket.
-3. Extracts lightweight metadata such as `word_count`, `character_count`, and a short `summary`.
-4. Stores structured metadata in the `processed` bucket.
-5. Builds a `curated` layer with document-level classification.
-6. Produces a consolidated report for run observability.
+`MinIO` is `S3-compatible object storage`. That matters because many modern data and ML systems rely on buckets, immutable objects, prefixes, and layered storage. This project uses MinIO to practice that architecture in a portable way.
 
-### Why MinIO matters here
+### Pipeline flow
 
-`MinIO` is `S3-compatible object storage`. That makes it a strong way to practice patterns used in real-world data platforms and MLOps environments without depending directly on AWS.
+1. A local document corpus is generated.
+2. Original content is stored in the `raw` bucket.
+3. Lightweight metadata is extracted.
+4. Derived metadata is stored in the `processed` bucket.
+5. A consumer-facing classification layer is written to `curated`.
+6. A pipeline report closes the run.
+
+### Storage contract
+
+- `raw`: immutable source layer
+- `processed`: derived metadata layer
+- `curated`: consumer-ready layer
 
 ### Runtime behavior
 
 The repository supports:
 
-- `minio_s3_api`: real MinIO-backed storage when credentials are configured;
-- `local_filesystem_fallback`: deterministic local simulation when MinIO is not available.
+- `minio_s3_api`: writes to a real MinIO server when credentials are configured
+- `local_filesystem_fallback`: deterministic local simulation when MinIO is not available
 
 ### Current result
 
@@ -166,3 +268,13 @@ The repository supports:
 - `processed_object_count = 6`
 - `curated_object_count = 6`
 - `maintenance_signal_documents = 1`
+
+### Why this project is useful
+
+This repository is a strong base for:
+
+- document AI pipelines
+- OCR artifact storage
+- RAG document repositories
+- compliance-oriented document retention
+- storage-first MLOps workflows
