@@ -73,22 +73,22 @@ flowchart LR
 
 ## Estrutura do repositorio
 
-- [main.py](/Users/flaviagaia/Documents/CV_FLAVIA_CODEX/document-intelligence-minio-pipeline/main.py)  
+- [main.py](main.py)  
   Entry point local do pipeline.
 
-- [app.py](/Users/flaviagaia/Documents/CV_FLAVIA_CODEX/document-intelligence-minio-pipeline/app.py)  
+- [app.py](app.py)  
   API simples para acionar o run.
 
-- [src/sample_data.py](/Users/flaviagaia/Documents/CV_FLAVIA_CODEX/document-intelligence-minio-pipeline/src/sample_data.py)  
+- [src/sample_data.py](src/sample_data.py)  
   Gera o corpus documental local e a referencia do runtime.
 
-- [src/storage.py](/Users/flaviagaia/Documents/CV_FLAVIA_CODEX/document-intelligence-minio-pipeline/src/storage.py)  
+- [src/storage.py](src/storage.py)  
   Resolve o runtime entre `MinIO` real e fallback local por filesystem.
 
-- [src/pipeline.py](/Users/flaviagaia/Documents/CV_FLAVIA_CODEX/document-intelligence-minio-pipeline/src/pipeline.py)  
+- [src/pipeline.py](src/pipeline.py)  
   Implementa a escrita nas camadas `raw`, `processed` e `curated`, alem do relatorio final.
 
-- [tests/test_project.py](/Users/flaviagaia/Documents/CV_FLAVIA_CODEX/document-intelligence-minio-pipeline/tests/test_project.py)  
+- [tests/test_project.py](tests/test_project.py)  
   Garante o contrato minimo do pipeline.
 
 ## Contrato das camadas
@@ -190,9 +190,9 @@ uvicorn app:app --reload
 ## Artefatos gerados
 
 - relatorio consolidado:
-  [document_intelligence_minio_report.json](/Users/flaviagaia/Documents/CV_FLAVIA_CODEX/document-intelligence-minio-pipeline/data/processed/document_intelligence_minio_report.json)
+  [document_intelligence_minio_report.json](data/processed/document_intelligence_minio_report.json)
 - camada `curated`:
-  [curated_documents.json](/Users/flaviagaia/Documents/CV_FLAVIA_CODEX/document-intelligence-minio-pipeline/artifacts/curated_documents.json)
+  [curated_documents.json](artifacts/curated_documents.json)
 
 ## Leitura tecnica
 
@@ -210,11 +210,6 @@ Tecnicamente, o projeto demonstra alguns principios importantes:
 - **consumer-oriented curation**  
   a camada `curated` ja pensa no uso final por sistemas consumidores.
 
-## Como defender esse projeto em entrevista
-
-Uma boa forma de explicar esse repositório e:
-
-"Eu quis mostrar como usar MinIO como object storage compativel com S3 para organizar um pipeline documental por camadas. O documento original vai para `raw`, os metadados derivados vao para `processed`, e a visao mais pronta para consumo vai para `curated`. Isso ajuda com reprocessamento, governanca, lineage e integracao com busca, RAG ou analytics."
 
 ## Evolucoes naturais
 
